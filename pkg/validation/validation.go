@@ -16,6 +16,15 @@ type TokenValidator struct {
 	issuer     string
 }
 
+func NewTokenValidator(keys *jwk.Set, algorithms []string, audience string, issuer string) *TokenValidator {
+	return &TokenValidator{
+		keys,
+		algorithms,
+		audience,
+		issuer,
+	}
+}
+
 func (tv *TokenValidator) Validate(tokenString string) (*jwt.Token, error) {
 	// Extract token
 	token, err := jwt.Parse(tokenString, tv.getTokenAssociatedPublicKey)

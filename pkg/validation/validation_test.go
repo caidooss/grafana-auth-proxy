@@ -21,13 +21,12 @@ func setupValidationTest() (*rsa.PrivateKey, *rsa.PublicKey, jwt.MapClaims, *rsa
 func getTokenValidator(publicKey *rsa.PublicKey) *TokenValidator {
 	rawKeys := GetRawRS256Jwk(publicKey)
 	keys, _ := jwk.ParseString(rawKeys)
-
-	return &TokenValidator{
+	return NewTokenValidator(
 		keys,
 		[]string{Algorithm},
 		Audience,
 		Issuer,
-	}
+	)
 }
 
 func TestValidToken(t *testing.T) {
