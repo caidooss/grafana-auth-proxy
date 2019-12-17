@@ -3,7 +3,6 @@ package authtest
 import (
 	"crypto/rsa"
 	"encoding/base64"
-	"io/ioutil"
 	"math/big"
 	"time"
 
@@ -16,58 +15,6 @@ const (
 	Algorithm = "RS256"
 	KeyId     = "SomeKeyId"
 )
-
-func LoadRSAPrivateKeyFromDisk(location string) *rsa.PrivateKey {
-	keyData, e := ioutil.ReadFile(location)
-	if e != nil {
-		panic(e.Error())
-	}
-
-	key, e := jwt.ParseRSAPrivateKeyFromPEM(keyData)
-	if e != nil {
-		panic(e.Error())
-	}
-
-	return key
-}
-
-func LoadRSAPublicKeyFromDisk(location string) *rsa.PublicKey {
-	keyData, e := ioutil.ReadFile(location)
-	if e != nil {
-		panic(e.Error())
-	}
-
-	key, e := jwt.ParseRSAPublicKeyFromPEM(keyData)
-	if e != nil {
-		panic(e.Error())
-	}
-
-	return key
-}
-
-func MakeSampleToken(kid string, c jwt.Claims, key interface{}) *jwt.Token {
-	token := jwt.NewWithClaims(jwt.SigningMethodRS256, c)
-	token.Header["kid"] = kid
-
-	return token
-}
-
-func MakeSampleTokenString(c jwt.Claims, key interface{}) string {
-	return MakeSampleTokenStringWithAlg("RS256", c, key)
-}
-
-func MakeSampleTokenStringWithAlg(alg string, c jwt.Claims, key interface{}) string {
-	token := jwt.NewWithClaims(jwt.SigningMethodRS256, c)
-	token.Header["kid"] = KeyId
-	token.Header["alg"] = alg
-	s, e := token.SignedString(key)
-
-	if e != nil {
-		panic(e.Error())
-	}
-
-	return s
-}
 
 func GetDefaultClaims() jwt.MapClaims {
 	return jwt.MapClaims{

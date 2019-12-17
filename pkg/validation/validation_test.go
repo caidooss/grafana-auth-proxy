@@ -6,16 +6,15 @@ import (
 	"time"
 
 	"github.com/caido/grafana-auth-proxy/pkg/authtest"
-
 	"github.com/dgrijalva/jwt-go"
 	"github.com/lestrrat-go/jwx/jwk"
 	"github.com/stretchr/testify/assert"
 )
 
 func setupValidationTest() (*rsa.PrivateKey, *rsa.PublicKey, jwt.MapClaims, *rsa.PrivateKey) {
-	privateKey := authtest.LoadRSAPrivateKeyFromDisk("testdata/sample_key")
-	publicKey := authtest.LoadRSAPublicKeyFromDisk("testdata/sample_key.pub")
-	attackerKey := authtest.LoadRSAPrivateKeyFromDisk("testdata/attacker_key")
+	privateKey := authtest.LoadPrivateKey()
+	publicKey := authtest.LoadPublicKey()
+	attackerKey := authtest.LoadAttackerPrivateKey()
 	claims := authtest.GetDefaultClaims()
 	return privateKey, publicKey, claims, attackerKey
 }
@@ -35,7 +34,7 @@ func TestValidToken(t *testing.T) {
 	privateKey, publicKey, claims, _ := setupValidationTest()
 	tokenValidator := getTokenValidator(publicKey)
 
-	rawToken := authtest.MakeSampleTokenString(claims, privateKey)
+	rawToken := authtest.CreateTokenString(claims, privateKey)
 	token, err := tokenValidator.Validate(rawToken)
 
 	assert.Nil(t, err)
@@ -47,7 +46,7 @@ func TestBadIssuerToken(t *testing.T) {
 	tokenValidator := getTokenValidator(publicKey)
 
 	claims["iss"] = "bad_issuer"
-	rawToken := authtest.MakeSampleTokenString(claims, privateKey)
+	rawToken := authtest.CreateTokenString(claims, privateKey)
 	_, err := tokenValidator.Validate(rawToken)
 
 	if assert.NotNil(t, err) {
@@ -60,7 +59,7 @@ func TestBadAudienceToken(t *testing.T) {
 	tokenValidator := getTokenValidator(publicKey)
 
 	claims["aud"] = "bad_audience"
-	rawToken := authtest.MakeSampleTokenString(claims, privateKey)
+	rawToken := authtest.CreateTokenString(claims, privateKey)
 	_, err := tokenValidator.Validate(rawToken)
 
 	if assert.NotNil(t, err) {
@@ -74,7 +73,7 @@ func TestExpiredToken(t *testing.T) {
 
 	claims["iat"] = time.Now().Unix() - 300
 	claims["exp"] = time.Now().Unix() - 30
-	rawToken := authtest.MakeSampleTokenString(claims, privateKey)
+	rawToken := authtest.CreateTokenString(claims, privateKey)
 	_, err := tokenValidator.Validate(rawToken)
 
 	if assert.NotNil(t, err) {
@@ -86,7 +85,7 @@ func TestBadSignatureToken(t *testing.T) {
 	_, publicKey, claims, attackerKey := setupValidationTest()
 	tokenValidator := getTokenValidator(publicKey)
 
-	rawToken := authtest.MakeSampleTokenString(claims, attackerKey)
+	rawToken := authtest.CreateTokenString(claims, attackerKey)
 	_, err := tokenValidator.Validate(rawToken)
 
 	if assert.NotNil(t, err) {
@@ -98,7 +97,7 @@ func TestBadAlgorithmToken(t *testing.T) {
 	privateKey, publicKey, claims, _ := setupValidationTest()
 	tokenValidator := getTokenValidator(publicKey)
 
-	rawToken := authtest.MakeSampleTokenStringWithAlg("HS256", claims, privateKey)
+	rawToken := authtest.CreateTokenStringWithAlg("HS256", claims, privateKey)
 	_, err := tokenValidator.Validate(rawToken)
 
 	if assert.NotNil(t, err) {
@@ -110,7 +109,7 @@ func TestNoAlgorithmToken(t *testing.T) {
 	privateKey, publicKey, claims, _ := setupValidationTest()
 	tokenValidator := getTokenValidator(publicKey)
 
-	rawToken := authtest.MakeSampleTokenStringWithAlg("none", claims, privateKey)
+	rawToken := authtest.CreateTokenStringWithAlg("none", claims, privateKey)
 	_, err := tokenValidator.Validate(rawToken)
 
 	if assert.NotNil(t, err) {

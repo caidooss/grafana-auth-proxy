@@ -7,15 +7,11 @@ import (
 	"testing"
 
 	"github.com/caido/grafana-auth-proxy/pkg/authtest"
-
-	"github.com/stretchr/testify/assert"
-
-	"github.com/caido/grafana-auth-proxy/pkg/identity"
-	"github.com/lestrrat-go/jwx/jwk"
-
-	"github.com/caido/grafana-auth-proxy/pkg/validation"
-
 	"github.com/caido/grafana-auth-proxy/pkg/extraction"
+	"github.com/caido/grafana-auth-proxy/pkg/identity"
+	"github.com/caido/grafana-auth-proxy/pkg/validation"
+	"github.com/lestrrat-go/jwx/jwk"
+	"github.com/stretchr/testify/assert"
 )
 
 const (
@@ -28,7 +24,7 @@ func getRequestsHandler(servedUrl string) *RequestsHandler {
 	tokenExtractor := extraction.NewTokenExtractor(extraction.NewCookieExtractor(cookieName))
 
 	// Validator
-	publicKey := authtest.LoadRSAPublicKeyFromDisk("pkg/validation/testdata/sample_key.pub")
+	publicKey := authtest.LoadPublicKey()
 	rawKeys := authtest.GetRawRS256Jwk(publicKey)
 	keys, _ := jwk.ParseString(rawKeys)
 	tokenValidator := validation.NewTokenValidator(keys, []string{"RS256"}, authtest.Audience, authtest.Issuer)
@@ -47,8 +43,8 @@ func getRequestsHandler(servedUrl string) *RequestsHandler {
 
 func getToken() string {
 	claims := authtest.GetDefaultClaims()
-	privateKey := authtest.LoadRSAPrivateKeyFromDisk("pkg/validation/testdata/sample_key")
-	token := authtest.MakeSampleTokenString(claims, privateKey)
+	privateKey := authtest.LoadPrivateKey()
+	token := authtest.CreateTokenString(claims, privateKey)
 	return token
 }
 
