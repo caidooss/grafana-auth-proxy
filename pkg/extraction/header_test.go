@@ -1,9 +1,10 @@
-package extraction
+package extraction_test
 
 import (
 	"net/http"
 	"testing"
 
+	"github.com/caido/grafana-auth-proxy/pkg/extraction"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -14,7 +15,7 @@ const (
 )
 
 func TestHeaderExtractor(t *testing.T) {
-	headerExtractor := NewHeaderExtractor(headerName, headerPrefix)
+	headerExtractor := extraction.NewHeaderExtractor(headerName, headerPrefix)
 
 	req, _ := http.NewRequest("GET", "/test", nil)
 	req.Header.Add(headerName, headerPrefix+" "+headerValue)
@@ -26,7 +27,7 @@ func TestHeaderExtractor(t *testing.T) {
 }
 
 func TestHeaderExtractorMissingHeader(t *testing.T) {
-	headerExtractor := NewHeaderExtractor(headerName, headerPrefix)
+	headerExtractor := extraction.NewHeaderExtractor(headerName, headerPrefix)
 
 	req, _ := http.NewRequest("GET", "/test", nil)
 
@@ -37,7 +38,7 @@ func TestHeaderExtractorMissingHeader(t *testing.T) {
 }
 
 func TestHeaderExtractorOtherHeader(t *testing.T) {
-	headerExtractor := NewHeaderExtractor(headerName, headerPrefix)
+	headerExtractor := extraction.NewHeaderExtractor(headerName, headerPrefix)
 
 	req, _ := http.NewRequest("GET", "/test", nil)
 	req.Header.Add("MyOtherHeader", headerPrefix+" "+headerValue)
@@ -49,7 +50,7 @@ func TestHeaderExtractorOtherHeader(t *testing.T) {
 }
 
 func TestHeaderExtractorCaseInsensitive(t *testing.T) {
-	headerExtractor := NewHeaderExtractor(headerName, headerPrefix)
+	headerExtractor := extraction.NewHeaderExtractor(headerName, headerPrefix)
 
 	req, _ := http.NewRequest("GET", "/test", nil)
 	req.Header.Add(headerName, "bearer "+headerValue)
@@ -61,7 +62,7 @@ func TestHeaderExtractorCaseInsensitive(t *testing.T) {
 }
 
 func TestHeaderExtractorWrongPrefix(t *testing.T) {
-	headerExtractor := NewHeaderExtractor(headerName, headerPrefix)
+	headerExtractor := extraction.NewHeaderExtractor(headerName, headerPrefix)
 
 	req, _ := http.NewRequest("GET", "/test", nil)
 	req.Header.Add(headerName, "InvalidPrefix "+headerValue)
@@ -73,7 +74,7 @@ func TestHeaderExtractorWrongPrefix(t *testing.T) {
 }
 
 func TestHeaderExtractorNoToken(t *testing.T) {
-	headerExtractor := NewHeaderExtractor(headerName, headerPrefix)
+	headerExtractor := extraction.NewHeaderExtractor(headerName, headerPrefix)
 
 	req, _ := http.NewRequest("GET", "/test", nil)
 	req.Header.Add(headerName, "InvalidPrefix ")
@@ -85,7 +86,7 @@ func TestHeaderExtractorNoToken(t *testing.T) {
 }
 
 func TestHeaderExtractorTooManyParts(t *testing.T) {
-	headerExtractor := NewHeaderExtractor(headerName, headerPrefix)
+	headerExtractor := extraction.NewHeaderExtractor(headerName, headerPrefix)
 
 	req, _ := http.NewRequest("GET", "/test", nil)
 	req.Header.Add(headerName, "InvalidPrefix "+headerValue+" SomeOtherValue")

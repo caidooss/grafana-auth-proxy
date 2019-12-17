@@ -1,8 +1,9 @@
-package identity
+package identity_test
 
 import (
 	"testing"
 
+	"github.com/caido/grafana-auth-proxy/pkg/identity"
 	"github.com/dgrijalva/jwt-go"
 	"github.com/stretchr/testify/assert"
 )
@@ -13,7 +14,7 @@ const (
 )
 
 func TestTokenProvider(t *testing.T) {
-	tokenProvider := NewTokenProvider(claimName)
+	tokenProvider := identity.NewTokenProvider(claimName)
 	claims := jwt.MapClaims{claimName: username}
 
 	userId, err := tokenProvider.Identify(claims)
@@ -23,7 +24,7 @@ func TestTokenProvider(t *testing.T) {
 }
 
 func TestTokenProviderMissingClaim(t *testing.T) {
-	tokenProvider := NewTokenProvider(claimName)
+	tokenProvider := identity.NewTokenProvider(claimName)
 	claims := jwt.MapClaims{}
 
 	userId, err := tokenProvider.Identify(claims)
@@ -33,7 +34,7 @@ func TestTokenProviderMissingClaim(t *testing.T) {
 }
 
 func TestTokenProviderEmptyClaim(t *testing.T) {
-	tokenProvider := NewTokenProvider(claimName)
+	tokenProvider := identity.NewTokenProvider(claimName)
 	claims := jwt.MapClaims{claimName: ""}
 
 	userId, err := tokenProvider.Identify(claims)
@@ -43,7 +44,7 @@ func TestTokenProviderEmptyClaim(t *testing.T) {
 }
 
 func TestTokenProviderInvalidClaim(t *testing.T) {
-	tokenProvider := NewTokenProvider(claimName)
+	tokenProvider := identity.NewTokenProvider(claimName)
 	claims := jwt.MapClaims{claimName: []string{username}}
 
 	userId, err := tokenProvider.Identify(claims)

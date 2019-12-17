@@ -1,14 +1,15 @@
-package extraction
+package extraction_test
 
 import (
 	"net/http"
 	"testing"
 
+	"github.com/caido/grafana-auth-proxy/pkg/extraction"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestTokenExtractorNoExtractor(t *testing.T) {
-	tokenExtractor := NewTokenExtractor()
+	tokenExtractor := extraction.NewTokenExtractor()
 
 	req, _ := http.NewRequest("GET", "/test", nil)
 
@@ -19,9 +20,9 @@ func TestTokenExtractorNoExtractor(t *testing.T) {
 }
 
 func TestTokenExtractorFirstUsed(t *testing.T) {
-	tokenExtractor := NewTokenExtractor(
-		NewCookieExtractor(cookieName),
-		NewHeaderExtractor(headerName, headerPrefix),
+	tokenExtractor := extraction.NewTokenExtractor(
+		extraction.NewCookieExtractor(cookieName),
+		extraction.NewHeaderExtractor(headerName, headerPrefix),
 	)
 
 	req, _ := http.NewRequest("GET", "/test", nil)
@@ -35,9 +36,9 @@ func TestTokenExtractorFirstUsed(t *testing.T) {
 }
 
 func TestTokenExtractorFallback(t *testing.T) {
-	tokenExtractor := NewTokenExtractor(
-		NewCookieExtractor(cookieName),
-		NewHeaderExtractor(headerName, headerPrefix),
+	tokenExtractor := extraction.NewTokenExtractor(
+		extraction.NewCookieExtractor(cookieName),
+		extraction.NewHeaderExtractor(headerName, headerPrefix),
 	)
 
 	req, _ := http.NewRequest("GET", "/test", nil)

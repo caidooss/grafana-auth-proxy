@@ -1,9 +1,10 @@
-package extraction
+package extraction_test
 
 import (
 	"net/http"
 	"testing"
 
+	"github.com/caido/grafana-auth-proxy/pkg/extraction"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -13,7 +14,7 @@ const (
 )
 
 func TestCookieExtractor(t *testing.T) {
-	cookieExtractor := NewCookieExtractor(cookieName)
+	cookieExtractor := extraction.NewCookieExtractor(cookieName)
 	req, _ := http.NewRequest("GET", "/test", nil)
 	req.AddCookie(&http.Cookie{Name: cookieName, Value: cookieValue})
 
@@ -24,7 +25,7 @@ func TestCookieExtractor(t *testing.T) {
 }
 
 func TestCookieExtractorMissingCookie(t *testing.T) {
-	cookieExtractor := NewCookieExtractor(cookieName)
+	cookieExtractor := extraction.NewCookieExtractor(cookieName)
 	req, _ := http.NewRequest("GET", "/test", nil)
 
 	token, err := cookieExtractor.Extract(req)
@@ -34,7 +35,7 @@ func TestCookieExtractorMissingCookie(t *testing.T) {
 }
 
 func TestCookieExtractorOtherCookie(t *testing.T) {
-	cookieExtractor := NewCookieExtractor(cookieName)
+	cookieExtractor := extraction.NewCookieExtractor(cookieName)
 	req, _ := http.NewRequest("GET", "/test", nil)
 	req.AddCookie(&http.Cookie{Name: "OtherCookieName", Value: cookieValue})
 

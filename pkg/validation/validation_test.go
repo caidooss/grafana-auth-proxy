@@ -1,4 +1,4 @@
-package validation
+package validation_test
 
 import (
 	"crypto/rsa"
@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/caido/grafana-auth-proxy/pkg/authtest"
+	"github.com/caido/grafana-auth-proxy/pkg/validation"
 	"github.com/dgrijalva/jwt-go"
 	"github.com/lestrrat-go/jwx/jwk"
 	"github.com/stretchr/testify/assert"
@@ -19,10 +20,10 @@ func setupValidationTest() (*rsa.PrivateKey, *rsa.PublicKey, jwt.MapClaims, *rsa
 	return privateKey, publicKey, claims, attackerKey
 }
 
-func getTokenValidator(publicKey *rsa.PublicKey) *TokenValidator {
+func getTokenValidator(publicKey *rsa.PublicKey) *validation.TokenValidator {
 	rawKeys := authtest.GetRawRS256Jwk(publicKey)
 	keys, _ := jwk.ParseString(rawKeys)
-	return NewTokenValidator(
+	return validation.NewTokenValidator(
 		keys,
 		[]string{authtest.Algorithm},
 		authtest.Audience,
@@ -50,7 +51,7 @@ func TestBadIssuerToken(t *testing.T) {
 	_, err := tokenValidator.Validate(rawToken)
 
 	if assert.NotNil(t, err) {
-		assert.Equal(t, ErrorIssuer, err.(*Error).Code)
+		assert.Equal(t, validation.ErrorIssuer, err.(*validation.Error).Code)
 	}
 }
 
@@ -63,7 +64,7 @@ func TestBadAudienceToken(t *testing.T) {
 	_, err := tokenValidator.Validate(rawToken)
 
 	if assert.NotNil(t, err) {
-		assert.Equal(t, ErrorAudience, err.(*Error).Code)
+		assert.Equal(t, validation.ErrorAudience, err.(*validation.Error).Code)
 	}
 }
 
@@ -77,7 +78,7 @@ func TestExpiredToken(t *testing.T) {
 	_, err := tokenValidator.Validate(rawToken)
 
 	if assert.NotNil(t, err) {
-		assert.Equal(t, ErrorExpired, err.(*Error).Code)
+		assert.Equal(t, validation.ErrorExpired, err.(*validation.Error).Code)
 	}
 }
 
@@ -89,7 +90,7 @@ func TestBadSignatureToken(t *testing.T) {
 	_, err := tokenValidator.Validate(rawToken)
 
 	if assert.NotNil(t, err) {
-		assert.Equal(t, ErrorValidation, err.(*Error).Code)
+		assert.Equal(t, validation.ErrorValidation, err.(*validation.Error).Code)
 	}
 }
 
@@ -101,7 +102,7 @@ func TestBadAlgorithmToken(t *testing.T) {
 	_, err := tokenValidator.Validate(rawToken)
 
 	if assert.NotNil(t, err) {
-		assert.Equal(t, ErrorValidation, err.(*Error).Code)
+		assert.Equal(t, validation.ErrorValidation, err.(*validation.Error).Code)
 	}
 }
 
@@ -113,32 +114,6 @@ func TestNoAlgorithmToken(t *testing.T) {
 	_, err := tokenValidator.Validate(rawToken)
 
 	if assert.NotNil(t, err) {
-		assert.Equal(t, ErrorValidation, err.(*Error).Code)
-	}
-}
-
-func TestStringInArray(t *testing.T) {
-	var array = []string{"a", "b", "c"}
-
-	// exist in array tests
-	if !stringInSlice("a", array) {
-		t.Error("String \"a\" should be in array")
-	}
-
-	if !stringInSlice("b", array) {
-		t.Error("String \"b\" should be in array")
-	}
-
-	if !stringInSlice("c", array) {
-		t.Error("String \"c\" should be in array")
-	}
-
-	// not in array tests
-	if stringInSlice("not in array", array) {
-		t.Error("Input string is not supposed to be in array")
-	}
-
-	if stringInSlice("ab", array) {
-		t.Error("Input string is not supposed to be in array")
+		assert.Equal(t, validation.ErrorValidation, err.(*validation.Error).Code)
 	}
 }
