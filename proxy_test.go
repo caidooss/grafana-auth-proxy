@@ -6,6 +6,8 @@ import (
 	"net/url"
 	"testing"
 
+	"github.com/caido/grafana-auth-proxy/pkg/authtest"
+
 	"github.com/stretchr/testify/assert"
 
 	"github.com/caido/grafana-auth-proxy/pkg/identity"
@@ -26,10 +28,10 @@ func getRequestsHandler(servedUrl string) *RequestsHandler {
 	tokenExtractor := extraction.NewTokenExtractor(extraction.NewCookieExtractor(cookieName))
 
 	// Validator
-	publicKey := validation.LoadRSAPublicKeyFromDisk("pkg/validation/testdata/sample_key.pub")
-	rawKeys := validation.GetRawRS256Jwk(publicKey)
+	publicKey := authtest.LoadRSAPublicKeyFromDisk("pkg/validation/testdata/sample_key.pub")
+	rawKeys := authtest.GetRawRS256Jwk(publicKey)
 	keys, _ := jwk.ParseString(rawKeys)
-	tokenValidator := validation.NewTokenValidator(keys, []string{"RS256"}, validation.Audience, validation.Issuer)
+	tokenValidator := validation.NewTokenValidator(keys, []string{"RS256"}, authtest.Audience, authtest.Issuer)
 
 	// Identity Provider
 	identityProvider := identity.NewTokenProvider(usernameClaim)
@@ -44,9 +46,9 @@ func getRequestsHandler(servedUrl string) *RequestsHandler {
 }
 
 func getToken() string {
-	claims := validation.GetDefaultClaims()
-	privateKey := validation.LoadRSAPrivateKeyFromDisk("pkg/validation/testdata/sample_key")
-	token := validation.MakeSampleTokenString(claims, privateKey)
+	claims := authtest.GetDefaultClaims()
+	privateKey := authtest.LoadRSAPrivateKeyFromDisk("pkg/validation/testdata/sample_key")
+	token := authtest.MakeSampleTokenString(claims, privateKey)
 	return token
 }
 
