@@ -1,4 +1,4 @@
-package grafana_auth_proxy
+package main
 
 import (
 	"net/http"
@@ -36,10 +36,10 @@ func getRequestsHandler(servedUrl string) *RequestsHandler {
 
 	backendURL, _ := url.Parse(servedUrl)
 	return &RequestsHandler{
-		servedUrl:        backendURL,
-		tokenExtractor:   tokenExtractor,
-		tokenValidator:   tokenValidator,
-		identityProvider: identityProvider,
+		ServedUrl:        backendURL,
+		TokenExtractor:   tokenExtractor,
+		TokenValidator:   tokenValidator,
+		IdentityProvider: identityProvider,
 	}
 }
 
