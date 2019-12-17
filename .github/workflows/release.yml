@@ -1,0 +1,20 @@
+name: release
+
+on:
+  release:
+    types: [published]
+
+jobs:
+  release:
+
+    runs-on: ubuntu-18.04
+
+    steps:
+      - uses: actions/checkout@master
+
+      - name: Publish to Registry
+        uses: elgohr/Publish-Docker-Github-Action@master
+        with:
+          name: caido/grafana-auth-proxy
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
