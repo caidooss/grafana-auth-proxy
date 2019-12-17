@@ -14,6 +14,7 @@ const (
 	Audience  = "https://api.testing.io/"
 	Algorithm = "RS256"
 	KeyId     = "SomeKeyId"
+	Claim     = "email"
 )
 
 func GetDefaultClaims() jwt.MapClaims {

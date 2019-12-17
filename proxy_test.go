@@ -15,8 +15,7 @@ import (
 )
 
 const (
-	cookieName    = "AuthCookie"
-	usernameClaim = "email"
+	cookieName = "AuthCookie"
 )
 
 func setupTestBackendServer() (string, func()) {
@@ -40,7 +39,7 @@ func setupTestRequestsHandler(servedUrl string) *RequestsHandler {
 	tokenValidator := validation.NewTokenValidator(keys, []string{"RS256"}, authtest.Audience, authtest.Issuer)
 
 	// Identity Provider
-	identityProvider := identity.NewTokenProvider(usernameClaim)
+	identityProvider := identity.NewTokenProvider(authtest.Claim)
 
 	backendURL, _ := url.Parse(servedUrl)
 	return &RequestsHandler{
@@ -78,7 +77,7 @@ func TestRequestsHandlerValidRequest(t *testing.T) {
 
 func TestRequestsHandlerBackendDown(t *testing.T) {
 	// Prepare the proxy
-	requestHandler := setupTestRequestsHandler("http://localhost:123456")
+	requestHandler := setupTestRequestsHandler("http://localhost:12345")
 
 	// Prepare the request
 	req, _ := http.NewRequest("GET", "/test", nil)
@@ -93,7 +92,7 @@ func TestRequestsHandlerBackendDown(t *testing.T) {
 
 func TestRequestsHandlerMissingAuthentication(t *testing.T) {
 	// Prepare the proxy
-	requestHandler := setupTestRequestsHandler("http://localhost:123456")
+	requestHandler := setupTestRequestsHandler("http://localhost:12345")
 
 	// Prepare the request
 	req, _ := http.NewRequest("GET", "/test", nil)

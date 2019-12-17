@@ -43,7 +43,7 @@ func loadJwk(c *cli.Context) (*jwk.Set, error) {
 	return set, nil
 }
 
-func launchProxy(c *cli.Context) error {
+func createRequestsHandler(c *cli.Context) (*RequestsHandler, error) {
 	// Prepare token extractor
 	extractors := make([]extraction.Extractor, 0, 2)
 
@@ -62,7 +62,7 @@ func launchProxy(c *cli.Context) error {
 	}
 
 	if len(extractors) == 0 {
-		return errors.New("must specify either cookie or header authentication")
+		return nil, errors.New("must specify either cookie or header authentication")
 	}
 
 	tokenExtractor := extraction.NewTokenExtractor(extractors...)
@@ -70,22 +70,22 @@ func launchProxy(c *cli.Context) error {
 	// Prepare token validator
 	keys, err := loadJwk(c)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	algorithms := c.StringSlice("algorithms")
 	if len(algorithms) == 0 {
-		return errors.New("a least one JWT algorithm is required")
+		return nil, errors.New("a least one JWT algorithm is required")
 	}
 
 	audience := c.String("audience")
 	if audience == "" {
-		return errors.New("a JWT audience is required")
+		return nil, errors.New("a JWT audience is required")
 	}
 
 	issuer := c.String("issuer")
 	if issuer == "" {
-		return errors.New("a JWT issuer is required")
+		return nil, errors.New("a JWT issuer is required")
 	}
 
 	log.Printf("JWT accepted algorithms : %v", algorithms)
@@ -97,7 +97,7 @@ func launchProxy(c *cli.Context) error {
 	// Prepare identity provider
 	claimName := c.String("claim")
 	if claimName == "" {
-		return errors.New("a JWT Grafana claim is required")
+		return nil, errors.New("a JWT Grafana claim is required")
 	}
 
 	log.Printf("JWT Grafana authentication claim : %s", claimName)
@@ -107,19 +107,27 @@ func launchProxy(c *cli.Context) error {
 	// Prepare requests handler
 	rawURL := c.String("url")
 	if rawURL == "" {
-		return errors.New("an URL is required")
+		return nil, errors.New("an URL is required")
 	}
 
 	servedUrl, err := url.Parse(rawURL)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	log.Printf("Proxy serving : %s", servedUrl)
 
 	requestsHandler := &RequestsHandler{servedUrl, tokenExtractor, tokenValidator, identityProvider}
 
-	// Launch the proxy
+	return requestsHandler, nil
+}
+
+func launchProxy(c *cli.Context) error {
+	requestsHandler, err := createRequestsHandler(c)
+	if err != nil {
+		return err
+	}
+
 	port := c.Int("port")
 	if port == 0 {
 		return errors.New("a port is required")
