@@ -20,7 +20,7 @@ func setupValidationTest() (*rsa.PrivateKey, *rsa.PublicKey, jwt.MapClaims, *rsa
 	return privateKey, publicKey, claims, attackerKey
 }
 
-func getTokenValidator(publicKey *rsa.PublicKey) *validation.TokenValidator {
+func setupTestTokenValidator(publicKey *rsa.PublicKey) *validation.TokenValidator {
 	rawKeys := authtest.GetRawRS256Jwk(publicKey)
 	keys, _ := jwk.ParseString(rawKeys)
 	return validation.NewTokenValidator(
@@ -33,7 +33,7 @@ func getTokenValidator(publicKey *rsa.PublicKey) *validation.TokenValidator {
 
 func TestValidToken(t *testing.T) {
 	privateKey, publicKey, claims, _ := setupValidationTest()
-	tokenValidator := getTokenValidator(publicKey)
+	tokenValidator := setupTestTokenValidator(publicKey)
 
 	rawToken := authtest.CreateTokenString(claims, privateKey)
 	token, err := tokenValidator.Validate(rawToken)
@@ -44,7 +44,7 @@ func TestValidToken(t *testing.T) {
 
 func TestBadIssuerToken(t *testing.T) {
 	privateKey, publicKey, claims, _ := setupValidationTest()
-	tokenValidator := getTokenValidator(publicKey)
+	tokenValidator := setupTestTokenValidator(publicKey)
 
 	claims["iss"] = "bad_issuer"
 	rawToken := authtest.CreateTokenString(claims, privateKey)
@@ -57,7 +57,7 @@ func TestBadIssuerToken(t *testing.T) {
 
 func TestBadAudienceToken(t *testing.T) {
 	privateKey, publicKey, claims, _ := setupValidationTest()
-	tokenValidator := getTokenValidator(publicKey)
+	tokenValidator := setupTestTokenValidator(publicKey)
 
 	claims["aud"] = "bad_audience"
 	rawToken := authtest.CreateTokenString(claims, privateKey)
@@ -70,7 +70,7 @@ func TestBadAudienceToken(t *testing.T) {
 
 func TestExpiredToken(t *testing.T) {
 	privateKey, publicKey, claims, _ := setupValidationTest()
-	tokenValidator := getTokenValidator(publicKey)
+	tokenValidator := setupTestTokenValidator(publicKey)
 
 	claims["iat"] = time.Now().Unix() - 300
 	claims["exp"] = time.Now().Unix() - 30
@@ -84,7 +84,7 @@ func TestExpiredToken(t *testing.T) {
 
 func TestBadSignatureToken(t *testing.T) {
 	_, publicKey, claims, attackerKey := setupValidationTest()
-	tokenValidator := getTokenValidator(publicKey)
+	tokenValidator := setupTestTokenValidator(publicKey)
 
 	rawToken := authtest.CreateTokenString(claims, attackerKey)
 	_, err := tokenValidator.Validate(rawToken)
@@ -96,7 +96,7 @@ func TestBadSignatureToken(t *testing.T) {
 
 func TestBadAlgorithmToken(t *testing.T) {
 	privateKey, publicKey, claims, _ := setupValidationTest()
-	tokenValidator := getTokenValidator(publicKey)
+	tokenValidator := setupTestTokenValidator(publicKey)
 
 	rawToken := authtest.CreateTokenStringWithAlg("HS256", claims, privateKey)
 	_, err := tokenValidator.Validate(rawToken)
@@ -108,7 +108,7 @@ func TestBadAlgorithmToken(t *testing.T) {
 
 func TestNoAlgorithmToken(t *testing.T) {
 	privateKey, publicKey, claims, _ := setupValidationTest()
-	tokenValidator := getTokenValidator(publicKey)
+	tokenValidator := setupTestTokenValidator(publicKey)
 
 	rawToken := authtest.CreateTokenStringWithAlg("none", claims, privateKey)
 	_, err := tokenValidator.Validate(rawToken)

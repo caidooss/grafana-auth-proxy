@@ -19,7 +19,17 @@ const (
 	usernameClaim = "email"
 )
 
-func getRequestsHandler(servedUrl string) *RequestsHandler {
+func setupTestBackendServer() (string, func()) {
+	backendServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		userId := r.Header.Get(grafanaAuthHeader)
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte(userId))
+	}))
+
+	return backendServer.URL, backendServer.Close
+}
+
+func setupTestRequestsHandler(servedUrl string) *RequestsHandler {
 	// Extractor
 	tokenExtractor := extraction.NewTokenExtractor(extraction.NewCookieExtractor(cookieName))
 
@@ -41,7 +51,7 @@ func getRequestsHandler(servedUrl string) *RequestsHandler {
 	}
 }
 
-func getToken() string {
+func setupTestToken() string {
 	claims := authtest.GetDefaultClaims()
 	privateKey := authtest.LoadPrivateKey()
 	token := authtest.CreateTokenString(claims, privateKey)
@@ -50,17 +60,13 @@ func getToken() string {
 
 func TestRequestsHandlerValidRequest(t *testing.T) {
 	// Prepare the backend and proxy
-	backend := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		userId := r.Header.Get(grafanaAuthHeader)
-		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(userId))
-	}))
-	defer backend.Close()
-	requestHandler := getRequestsHandler(backend.URL)
+	backendURL, closeBackend := setupTestBackendServer()
+	defer closeBackend()
+	requestHandler := setupTestRequestsHandler(backendURL)
 
 	// Prepare the request
 	req, _ := http.NewRequest("GET", "/test", nil)
-	req.AddCookie(&http.Cookie{Name: cookieName, Value: getToken()})
+	req.AddCookie(&http.Cookie{Name: cookieName, Value: setupTestToken()})
 
 	// Send the request
 	rr := httptest.NewRecorder()
@@ -72,11 +78,11 @@ func TestRequestsHandlerValidRequest(t *testing.T) {
 
 func TestRequestsHandlerBackendDown(t *testing.T) {
 	// Prepare the proxy
-	requestHandler := getRequestsHandler("http://localhost:123456")
+	requestHandler := setupTestRequestsHandler("http://localhost:123456")
 
 	// Prepare the request
 	req, _ := http.NewRequest("GET", "/test", nil)
-	req.AddCookie(&http.Cookie{Name: cookieName, Value: getToken()})
+	req.AddCookie(&http.Cookie{Name: cookieName, Value: setupTestToken()})
 
 	// Send the request
 	rr := httptest.NewRecorder()
@@ -87,7 +93,7 @@ func TestRequestsHandlerBackendDown(t *testing.T) {
 
 func TestRequestsHandlerMissingAuthentication(t *testing.T) {
 	// Prepare the proxy
-	requestHandler := getRequestsHandler("http://localhost:123456")
+	requestHandler := setupTestRequestsHandler("http://localhost:123456")
 
 	// Prepare the request
 	req, _ := http.NewRequest("GET", "/test", nil)
