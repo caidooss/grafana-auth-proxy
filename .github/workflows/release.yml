@@ -12,9 +12,17 @@ jobs:
     steps:
       - uses: actions/checkout@master
 
-      - name: Publish to Registry
+      - name: Publish to Registry (latest)
         uses: elgohr/Publish-Docker-Github-Action@master
         with:
           name: caido/grafana-auth-proxy
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Publish to Registry (tag)
+        uses: elgohr/Publish-Docker-Github-Action@master
+        with:
+          name: artis3n/docker-ubuntu1804-ansible
+          username: ${{ secrets.docker_username }}
+          password: ${{ secrets.docker_password }}
+          tag_names: true
