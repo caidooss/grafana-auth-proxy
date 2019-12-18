@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"io/ioutil"
@@ -8,7 +9,9 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"os/signal"
 	"strconv"
+	"syscall"
 
 	"github.com/caido/grafana-auth-proxy/pkg/extraction"
 	"github.com/caido/grafana-auth-proxy/pkg/identity"
@@ -123,11 +126,13 @@ func createRequestsHandler(c *cli.Context) (*RequestsHandler, error) {
 }
 
 func launchProxy(c *cli.Context) error {
+	// Build requests handler
 	requestsHandler, err := createRequestsHandler(c)
 	if err != nil {
 		return err
 	}
 
+	// Find port
 	port := c.Int("port")
 	if port == 0 {
 		return errors.New("a port is required")
@@ -135,7 +140,19 @@ func launchProxy(c *cli.Context) error {
 
 	log.Printf("Proxy running on port : %d", port)
 
-	return http.ListenAndServe(":"+strconv.Itoa(port), requestsHandler)
+	// Start server
+	server := http.Server{Addr: ":" + strconv.Itoa(port), Handler: requestsHandler}
+	go func() {
+		if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+			log.Fatal(err)
+		}
+	}()
+
+	// Handle shutdown
+	select {
+	case <-c.Context.Done():
+		return server.Shutdown(c.Context)
+	}
 }
 
 func main() {
@@ -147,7 +164,7 @@ func main() {
 		log.Printf("Unable to load a .env file")
 	}
 
-	// Launch app
+	// Build the app
 	app := &cli.App{
 		Action: launchProxy,
 		Flags: []cli.Flag{
@@ -225,8 +242,23 @@ func main() {
 		},
 	}
 
-	err = app.Run(os.Args)
+	// Handle signals
+	sigs := make(chan os.Signal, 1)
+	signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM)
+
+	go func() {
+		<-sigs
+		os.Exit(1)
+	}()
+
+	// Run the app
+	ctx, cancel := context.WithCancel(context.Background())
+	err = app.RunContext(ctx, os.Args)
 	if err != nil {
 		log.Fatal(err)
 	}
+
+	// Handle graceful shutdown
+	<-sigs
+	cancel()
 }
