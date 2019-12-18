@@ -1,7 +1,7 @@
 # Grafana Auth Proxy
 [![CI](https://github.com/caido/grafana-auth-proxy/workflows/CI/badge.svg)](https://github.com/caido/grafana-auth-proxy/actions?query=workflow%3ACI)
 [![Maintainability](https://api.codeclimate.com/v1/badges/0bad80ade3fec5f8c33f/maintainability)](https://codeclimate.com/github/caido/grafana-auth-proxy/maintainability)
-[![Docker Pulls](https://img.shields.io/docker/pulls/caido/grafana-auth-proxy)](https://hub.docker.com/repository/docker/caido/grafana-auth-proxy)
+[![Docker Pulls](https://img.shields.io/docker/pulls/caido/grafana-auth-proxy)](https://hub.docker.com/r/caido/grafana-auth-proxy)
 [![Docker Analaysis](https://images.microbadger.com/badges/image/caido/grafana-auth-proxy.svg)](https://microbadger.com/images/caido/grafana-auth-proxy)
 
 This is simple, lightweight and performant reverse authentication proxy for Grafana using JWT tokens.
