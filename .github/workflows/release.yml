@@ -22,7 +22,7 @@ jobs:
       - name: Publish to Registry (tag)
         uses: elgohr/Publish-Docker-Github-Action@master
         with:
-          name: artis3n/docker-ubuntu1804-ansible
+          name: caido/grafana-auth-proxy
           username: ${{ secrets.docker_username }}
           password: ${{ secrets.docker_password }}
           tag_names: true
