@@ -1,4 +1,9 @@
 # Grafana Auth Proxy
+[![CI](https://github.com/caido/grafana-auth-proxy/workflows/CI/badge.svg)](https://github.com/caido/grafana-auth-proxy/actions?query=workflow%3ACI)
+[![Maintainability](https://api.codeclimate.com/v1/badges/0bad80ade3fec5f8c33f/maintainability)](https://codeclimate.com/github/caido/grafana-auth-proxy/maintainability)
+[![Docker Pulls](https://img.shields.io/docker/pulls/caido/grafana-auth-proxy)](https://hub.docker.com/repository/docker/caido/grafana-auth-proxy)
+[![Docker Analaysis](https://images.microbadger.com/badges/image/caido/grafana-auth-proxy.svg)](https://microbadger.com/images/caido/grafana-auth-proxy)
+
 This is simple, lightweight and performant reverse authentication proxy for Grafana using JWT tokens.
 It was originally designed to be more flexible than the [documented solution](https://grafana.com/docs/grafana/latest/auth/auth-proxy/) based on Apache.
 Using this solution, the user will **not** be presented with a login screen and will arrive directly in its dashboards.
@@ -6,6 +11,15 @@ This is thus ideal when you want to embed Grafana in another application.
 
 This proxy can accept tokens from a cookie or an header. We use a cookie in production, because it is the easiest way to deploy a multi-tenant Grafana without patching the frontend.
 Note that the proxy does **NOT** handle the creation of the tokens and cookies (which can be vulnerable to CSRF), please be sure to know what you are doing before deploying this solution in production.
+
+## Grafana
+Before using this proxy, you need to setup grafana correctly. A few parameters are required:
+```bash
+GF_AUTH_PROXY_ENABLED=true                  # Enable authentication via a proxy
+GF_AUTH_PROXY_HEADER_NAME=X-WEBAUTH-USER    # Header that grafana will expect (do not change)
+GF_AUTH_PROXY_HEADER_PROPERTY=email         # Either email or username depending on what will be in the token
+GF_AUTH_PROXY_AUTO_SIGN_UP=false            # In case of a multi-tenant system, make sure to disable auto sign up
+```
 
 ## Usage
 We recommend that you start from the provided Docker image.
