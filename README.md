@@ -28,7 +28,7 @@ The proxy requires a couple of parameters to work. You can either provide them u
 The proxy will load a `.env` file in the same directory.
 ```bash
 PROXY_SERVED_URL=http://localhost:3000                                  # Grafana URL (usually this will not change)
-PROXY_PORT=5000                                                         # Proxy on which the proxy will listen to (all interfaces)
+PROXY_PORT=5000                                                         # Port on which the proxy will listen to (all interfaces)
 PROXY_COOKIE_AUTH=true                                                  # Enable Cookie authentication
 PROXY_COOKIE=MyAccessToken                                              # The name of the cookie containing the JWT token
 PROXY_HEADER_AUTH=true                                                  # Enable Header authentication
