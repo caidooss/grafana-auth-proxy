@@ -80,19 +80,19 @@ func createRequestsHandler(c *cli.Context) (*RequestsHandler, error) {
 	if len(algorithms) == 0 {
 		return nil, errors.New("a least one JWT algorithm is required")
 	}
+	log.Printf("JWT accepted algorithms : %v", algorithms)
 
 	audience := c.String("audience")
 	if audience == "" {
-		return nil, errors.New("a JWT audience is required")
+		log.Printf("[WARN] Did not provide a JWT audience")
+	} else {
+		log.Printf("JWT accepted audience : %s", audience)
 	}
 
 	issuer := c.String("issuer")
 	if issuer == "" {
 		return nil, errors.New("a JWT issuer is required")
 	}
-
-	log.Printf("JWT accepted algorithms : %v", algorithms)
-	log.Printf("JWT accepted audience : %s", audience)
 	log.Printf("JWT accepted issuer : %s", issuer)
 
 	tokenValidator := validation.NewTokenValidator(keys, algorithms, audience, issuer)
@@ -102,7 +102,6 @@ func createRequestsHandler(c *cli.Context) (*RequestsHandler, error) {
 	if claimName == "" {
 		return nil, errors.New("a JWT Grafana claim is required")
 	}
-
 	log.Printf("JWT Grafana authentication claim : %s", claimName)
 
 	identityProvider := identity.NewTokenProvider(claimName)
@@ -222,10 +221,9 @@ func main() {
 				EnvVars: []string{"PROXY_JWT_ALGORITHMS"},
 			},
 			&cli.StringFlag{
-				Name:     "audience",
-				Required: true,
-				Usage:    "JWT audience to accept",
-				EnvVars:  []string{"PROXY_JWT_AUDIENCE"},
+				Name:    "audience",
+				Usage:   "JWT audience to accept",
+				EnvVars: []string{"PROXY_JWT_AUDIENCE"},
 			},
 			&cli.StringFlag{
 				Name:     "issuer",
