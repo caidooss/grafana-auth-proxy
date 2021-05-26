@@ -1,7 +1,7 @@
 # Grafana Auth Proxy
 [![CI](https://github.com/caidooss/grafana-auth-proxy/workflows/CI/badge.svg)](https://github.com/caidooss/grafana-auth-proxy/actions?query=workflow%3ACI)
 [![Maintainability](https://api.codeclimate.com/v1/badges/be46b1dd312921e33180/maintainability)](https://codeclimate.com/github/caidooss/grafana-auth-proxy/maintainability)
-[![Docker Pulls](https://img.shields.io/docker/pulls/caidooss/grafana-auth-proxy)](https://hub.docker.com/r/caido/grafana-auth-proxy)
+[![Docker Pulls](https://img.shields.io/docker/pulls/caidooss/grafana-auth-proxy)](https://hub.docker.com/r/caidooss/grafana-auth-proxy)
 
 🔔 **ANNOUNCEMENT** 🔔 
 
@@ -44,7 +44,7 @@ PROXY_JWT_AUDIENCE=https://api.testing.io/                              # The au
 PROXY_JWT_GRAFANA_CLAIM=https://testing.io/email                        # The claim to use in the token to authenticate the user (email or username)
 ```
 
-You can then do `docker run -p 5000:5000 --env-file .env caido/grafana-auth-proxy`.
+You can then do `docker run -p 5000:5000 --env-file .env caidooss/grafana-auth-proxy`.
 
 ## Extending
 
