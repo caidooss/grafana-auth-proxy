@@ -35,7 +35,9 @@ func setupTestFlagSet(backendURL string, jwkURL string) *flag.FlagSet {
 	set.Var(cli.NewStringSlice(authtest.Algorithm), "algorithms", "")
 	set.String("audience", authtest.Audience, "")
 	set.String("issuer", authtest.Issuer, "")
-	set.String("claim", authtest.Claim, "")
+	set.String("user_claim", authtest.UserClaim, "")
+	set.String("org_claim", authtest.OrgClaim, "")
+	set.String("role_claim", authtest.RoleClaim, "")
 	return set
 }
 

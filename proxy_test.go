@@ -39,14 +39,17 @@ func setupTestRequestsHandler(servedUrl string) *RequestsHandler {
 	tokenValidator := validation.NewTokenValidator(keys, []string{"RS256"}, authtest.Audience, authtest.Issuer)
 
 	// Identity Provider
-	identityProvider := identity.NewTokenProvider(authtest.Claim)
+	ips := make(map[string]identity.Provider)
+	ips["user_claim"] = identity.NewTokenProvider(authtest.UserClaim)
+	ips["org_claim"] = identity.NewTokenProvider(authtest.OrgClaim)
+	ips["role_claim"] = identity.NewTokenProvider(authtest.RoleClaim)
 
 	backendURL, _ := url.Parse(servedUrl)
 	return &RequestsHandler{
-		ServedUrl:        backendURL,
-		TokenExtractor:   tokenExtractor,
-		TokenValidator:   tokenValidator,
-		IdentityProvider: identityProvider,
+		ServedUrl:         backendURL,
+		TokenExtractor:    tokenExtractor,
+		TokenValidator:    tokenValidator,
+		IdentityProviders: ips,
 	}
 }
 

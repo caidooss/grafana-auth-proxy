@@ -11,9 +11,11 @@ import (
 	"os"
 	"os/signal"
 	"strconv"
+	"strings"
 	"syscall"
 
 	"github.com/caido/grafana-auth-proxy/pkg/extraction"
+	"github.com/caido/grafana-auth-proxy/pkg/grafana"
 	"github.com/caido/grafana-auth-proxy/pkg/identity"
 	"github.com/caido/grafana-auth-proxy/pkg/validation"
 	"github.com/joho/godotenv"
@@ -97,15 +99,34 @@ func createRequestsHandler(c *cli.Context) (*RequestsHandler, error) {
 
 	tokenValidator := validation.NewTokenValidator(keys, algorithms, audience, issuer)
 
-	// Prepare identity provider
-	claimName := c.String("claim")
-	if claimName == "" {
-		return nil, errors.New("a JWT Grafana claim is required")
+	// Prepare identity providers
+	identityProviders := make(map[string]identity.Provider)
+	userClaimName := c.String("user_claim")
+	if userClaimName == "" {
+		return nil, errors.New("a JWT Grafana user claim is required")
 	}
 
-	log.Printf("JWT Grafana authentication claim : %s", claimName)
+	log.Printf("JWT Grafana authentication user claim : %s", userClaimName)
 
-	identityProvider := identity.NewTokenProvider(claimName)
+	identityProviders["user_claim"] = identity.NewTokenProvider(userClaimName)
+
+	orgClaimName := c.String("org_claim")
+	if orgClaimName == "" {
+		return nil, errors.New("a JWT Grafana org claim is required")
+	}
+
+	log.Printf("JWT Grafana authentication org claim : %s", orgClaimName)
+
+	identityProviders["org_claim"] = identity.NewTokenProvider(orgClaimName)
+
+	roleClaimName := c.String("role_claim")
+	if roleClaimName == "" {
+		return nil, errors.New("a JWT Grafana role claim is required")
+	}
+
+	log.Printf("JWT Grafana authentication role claim : %s", roleClaimName)
+
+	identityProviders["role_claim"] = identity.NewTokenProvider(roleClaimName)
 
 	// Prepare requests handler
 	rawURL := c.String("url")
@@ -118,9 +139,11 @@ func createRequestsHandler(c *cli.Context) (*RequestsHandler, error) {
 		return nil, err
 	}
 
+	grafanaClient := grafana.NewGrafanaClient(c.String("admin_username"), c.String("admin_password"), "http://localhost:3000")
+
 	log.Printf("Proxy serving : %s", servedUrl)
 
-	requestsHandler := &RequestsHandler{servedUrl, tokenExtractor, tokenValidator, identityProvider}
+	requestsHandler := &RequestsHandler{servedUrl, tokenExtractor, tokenValidator, identityProviders, grafanaClient}
 
 	return requestsHandler, nil
 }
@@ -140,10 +163,28 @@ func launchProxy(c *cli.Context) error {
 
 	log.Printf("Proxy running on port : %d", port)
 
+	tlsCert := c.String("tls_cert")
+	if tlsCert == "" {
+		return errors.New("a TLS certificate is required")
+	}
+	tlsKey := c.String("tls_key")
+	if tlsKey == "" {
+		return errors.New("a TLS key is required")
+	}
+
+	addr := c.String("addr")
+	if addr == "" {
+		addr = ":"
+	} else {
+		if !strings.HasSuffix(addr, ":") {
+			addr += ":"
+		}
+	}
+
 	// Start server
-	server := http.Server{Addr: ":" + strconv.Itoa(port), Handler: requestsHandler}
+	server := http.Server{Addr: addr + strconv.Itoa(port), Handler: requestsHandler}
 	go func() {
-		if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+		if err := server.ListenAndServeTLS(tlsCert, tlsKey); err != nil && err != http.ErrServerClosed {
 			log.Fatal(err)
 		}
 	}()
@@ -234,10 +275,52 @@ func main() {
 				EnvVars:  []string{"PROXY_JWT_ISSUER"},
 			},
 			&cli.StringFlag{
-				Name:     "claim",
+				Name:     "user_claim",
 				Required: true,
-				Usage:    "JWT claim to use for Grafana authentication",
-				EnvVars:  []string{"PROXY_JWT_GRAFANA_CLAIM"},
+				Usage:    "JWT user claim to use for Grafana authentication",
+				EnvVars:  []string{"PROXY_JWT_GRAFANA_USER_CLAIM"},
+			},
+			&cli.StringFlag{
+				Name:     "org_claim",
+				Required: true,
+				Usage:    "JWT org claim to use for Grafana authentication",
+				EnvVars:  []string{"PROXY_JWT_GRAFANA_ORG_CLAIM"},
+			},
+			&cli.StringFlag{
+				Name:     "role_claim",
+				Required: true,
+				Usage:    "JWT role claim to use for Grafana authentication",
+				EnvVars:  []string{"PROXY_JWT_GRAFANA_ROLE_CLAIM"},
+			},
+			&cli.StringFlag{
+				Name:     "admin_password",
+				Required: true,
+				Usage:    "Grafana admin password",
+				EnvVars:  []string{"PROXY_GRAFANA_ADMIN_PASSWORD"},
+			},
+			&cli.StringFlag{
+				Name:     "admin_username",
+				Required: true,
+				Usage:    "Grafana admin username",
+				EnvVars:  []string{"PROXY_GRAFANA_ADMIN_USERNAME"},
+			},
+			&cli.StringFlag{
+				Name:     "tls_cert",
+				Required: true,
+				Usage:    "TLS server certificate",
+				EnvVars:  []string{"PROXY_TLS_CERT"},
+			},
+			&cli.StringFlag{
+				Name:     "tls_key",
+				Required: true,
+				Usage:    "TLS server key",
+				EnvVars:  []string{"PROXY_TLS_KEY"},
+			},
+			&cli.StringFlag{
+				Name:     "addr",
+				Required: false,
+				Usage:    "Server address (default: localhost)",
+				EnvVars:  []string{"PROXY_ADDR"},
 			},
 		},
 	}
